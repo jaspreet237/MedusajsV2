@@ -1,4 +1,4 @@
-Absolutely! Here’s a step-by-step guide to running Medusa.js v2 from scratch in Docker, ideal for new projects.
+Here’s a step-by-step guide to running Medusa.js v2 from scratch in Docker, ideal for new projects.
 
 1. Prerequisites
 Docker and Docker Compose installed
