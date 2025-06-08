@@ -56,3 +56,38 @@ For production, set proper environment variables, secrets, and use medusa start 
 
 #command to create user for login:
 docker-compose exec medusa npx medusa user -e admin@example.com -p supersecret
+
+✅ Steps to Use Your Repo:
+Clone the Repo:
+
+bash
+Copy
+Edit
+git clone https://github.com/jaspreet237/MedusajsV2.git
+cd MedusajsV2
+Install Dependencies:
+
+bash
+Copy
+Edit
+yarn install
+# or
+npm install
+Create .env File:
+Copy the .env.template and fill in values:
+
+bash
+Copy
+Edit
+cp .env.template .env
+Run with Docker:
+Make sure Docker is running, then:
+
+bash
+Copy
+Edit
+docker-compose up --build
+Access Medusa Admin/Storefront/Backend:
+Depends on your docker-compose.yml setup. Usually:
+
+Backend: http://localhost:9000
