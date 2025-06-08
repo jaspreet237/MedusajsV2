@@ -1,4 +1,33 @@
-Here’s a step-by-step guide to running Medusa.js v2 from scratch in Docker, ideal for new projects.
+✅ Steps to Use Your Repo:
+Clone the Repo:
+
+bash
+git clone https://github.com/jaspreet237/MedusajsV2.git
+cd MedusajsV2
+Install Dependencies:
+
+bash
+yarn install
+# or
+npm install
+Create .env File:
+Copy the .env.template and fill in values:
+
+bash
+Copy
+Edit
+cp .env.template .env
+Run with Docker:
+Make sure Docker is running, then:
+
+bash
+docker-compose up --build
+Access Medusa Admin/Storefront/Backend:
+Depends on your docker-compose.yml setup. Usually:
+
+Backend: http://localhost:9000
+------------------------------------------------------------------------------------------------------------------------------------------
+✅  Here’s a step-by-step guide to running Medusa.js v2 from scratch in Docker, ideal for new projects.
 
 1. Prerequisites
 Docker and Docker Compose installed
@@ -37,7 +66,7 @@ In your project root, run:
 
 sh
 docker-compose up --build
-Medusa will now be running at http://localhost:9000.
+Medusa will now be running at http://localhost:9000/app.
 
 #command to create user for login:
 docker-compose exec medusa npx medusa user -e admin@example.com -p supersecret
@@ -48,7 +77,7 @@ For fresh setups, Medusa v2 may auto-migrate. If you ever need to run migrations
 sh
 docker-compose exec medusa npx medusa migrations run
 8. Access Medusa
-API: http://localhost:9000/store/products
+API: http://localhost:9000/app
 Admin: v2 does not include admin UI by default. You can add it as a separate service.
 9. Next Steps
 Add plugins or modules as needed (payments, file storage, etc.)
@@ -56,38 +85,3 @@ For production, set proper environment variables, secrets, and use medusa start 
 
 #command to create user for login:
 docker-compose exec medusa npx medusa user -e admin@example.com -p supersecret
-
-✅ Steps to Use Your Repo:
-Clone the Repo:
-
-bash
-Copy
-Edit
-git clone https://github.com/jaspreet237/MedusajsV2.git
-cd MedusajsV2
-Install Dependencies:
-
-bash
-Copy
-Edit
-yarn install
-# or
-npm install
-Create .env File:
-Copy the .env.template and fill in values:
-
-bash
-Copy
-Edit
-cp .env.template .env
-Run with Docker:
-Make sure Docker is running, then:
-
-bash
-Copy
-Edit
-docker-compose up --build
-Access Medusa Admin/Storefront/Backend:
-Depends on your docker-compose.yml setup. Usually:
-
-Backend: http://localhost:9000
