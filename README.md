@@ -85,3 +85,51 @@ For production, set proper environment variables, secrets, and use medusa start 
 
 #command to create user for login:
 docker-compose exec medusa npx medusa user -e admin@example.com -p supersecret
+
+
+You can pull the images from dockerhub and run the program using docker-compose.yml file :
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: medusa_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: medusa
+      POSTGRES_PASSWORD: medusa
+      POSTGRES_DB: medusa
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: medusa_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  medusa:
+    image: jaspreet237/medusajsv2:latest
+    container_name: medusa_app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgres://medusa:medusa@postgres/medusa?ssl_mode=disable
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+    ports:
+      - "9000:9000"
+    command: >
+      bash -c "
+        npx medusa db:setup --no-interactive &&
+        npx medusa start
+      "
+
+volumes:
+  pgdata:
+
