@@ -3,7 +3,11 @@ pipeline {
 
     environment {
         IMAGE_NAME = "jaspreet237/medusajsv2"
+<<<<<<< HEAD
         DOCKER_CREDENTIALS_ID = "Admin" // Create in Jenkins > Credentials
+=======
+        DOCKER_CREDENTIALS_ID = "dockerhub-creds" // Create in Jenkins > Credentials
+>>>>>>> 9c52514abd7b0bc3a038226a372c25746186ac62
     }
 
     stages {
