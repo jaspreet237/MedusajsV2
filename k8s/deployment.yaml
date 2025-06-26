@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medusa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medusa
+  template:
+    metadata:
+      labels:
+        app: medusa
+    spec:
+      containers:
+        - name: medusa
+          image: jaspreet237/medusajsv2:latest
+          ports:
+            - containerPort: 9000
+          env:
+            - name: DATABASE_URL
+              value: postgres://medusa:medusa@postgres/medusa?ssl_mode=disable
+            - name: REDIS_URL
+              value: redis://medusa-redis:6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medusa-service
+spec:
+  selector:
+    app: medusa
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9000
+  type: NodePort
