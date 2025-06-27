@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: medusa
-          image: jaspreet237/medusajsv2:latest
+          image: jaspreet237/medusajsv2:IMAGE_TAG
           ports:
             - containerPort: 9000
           env:
@@ -37,6 +37,6 @@ spec:
     app: medusa
   ports:
     - protocol: TCP
-      port: 80
+      port: 9000
       targetPort: 9000
-  type: NodePort
+  type: LoadBalancer
