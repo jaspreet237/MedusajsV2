@@ -39,7 +39,7 @@ pipeline {
       steps {
         sh '''
           echo "🚀 Replacing IMAGE_TAG with $IMAGE_TAG in deployment YAML"
-          sed "s|IMAGE_TAG|$IMAGE_TAG|g" k8s/deployment-template.yaml > k8s/deployment.yaml
+          sed "s|IMAGE_TAG|$IMAGE_TAG|g" k8s/deployment.yaml > k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml
         '''
       }
