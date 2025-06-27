@@ -1,44 +1,42 @@
-pipeline {
-    agent any
-
-    environment {
-        IMAGE_NAME = "jaspreet237/medusajsv2"
-<<<<<<< HEAD
-        DOCKER_CREDENTIALS_ID = "Jaspreet237" // Create in Jenkins > Credentials
-=======
-        DOCKER_CREDENTIALS_ID = "Jaspreet237" // Create in Jenkins > Credentials
->>>>>>> 9c52514abd7b0bc3a038226a372c25746186ac62
-    }
-
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git url: 'https://github.com/jaspreet237/MedusajsV2.git'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    docker.build("${IMAGE_NAME}:latest", ".")
-                }
-            }
-        }
-
-        stage('Push Image to Docker Hub') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
-                        docker.image("${IMAGE_NAME}:latest").push()
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                sh 'kubectl apply -f k8s/deployment.yaml'
-            }
-        }
-    }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medusa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medusa
+  template:
+    metadata:
+      labels:
+        app: medusa
+    spec:
+      containers:
+        - name: medusa
+          image: jaspreet237/medusajsv2:IMAGE_TAG
+          ports:
+            - containerPort: 9000
+          env:
+            - name: DATABASE_URL
+              value: postgres://medusa:medusa@postgres/medusa?ssl_mode=disable
+            - name: REDIS_URL
+              value: redis://medusa-redis:6379
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              npx medusa db:setup --no-interactive &&
+              npx medusa start
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medusa-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: medusa
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: 9000
