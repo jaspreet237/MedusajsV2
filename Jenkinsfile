@@ -1,42 +1,57 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: medusa
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: medusa
-  template:
-    metadata:
-      labels:
-        app: medusa
-    spec:
-      containers:
-        - name: medusa
-          image: jaspreet237/medusajsv2:IMAGE_TAG
-          ports:
-            - containerPort: 9000
-          env:
-            - name: DATABASE_URL
-              value: postgres://medusa:medusa@postgres/medusa?ssl_mode=disable
-            - name: REDIS_URL
-              value: redis://medusa-redis:6379
-          command: ["/bin/bash", "-c"]
-          args:
-            - |
-              npx medusa db:setup --no-interactive &&
-              npx medusa start
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: medusa-service
-spec:
-  type: LoadBalancer
-  selector:
-    app: medusa
-  ports:
-    - protocol: TCP
-      port: 9000
-      targetPort: 9000
+pipeline {
+  agent any
+
+  environment {
+    IMAGE_NAME = "jaspreet237/medusajsv2"
+    IMAGE_TAG = "${new Date().format('yyyyMMddHHmmss')}"
+  }
+
+  stages {
+    stage('Clone Repo') {
+      steps {
+        git branch: 'main', url: 'https://github.com/jaspreet237/MedusajsV2.git'
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        sh '''
+          echo "🔧 Building Docker image: $IMAGE_NAME:$IMAGE_TAG"
+          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+          docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
+        '''
+      }
+    }
+
+    stage('Push Docker Image') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          sh '''
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            docker push $IMAGE_NAME:$IMAGE_TAG
+            docker push $IMAGE_NAME:latest
+          '''
+        }
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        sh '''
+          echo "🚀 Replacing IMAGE_TAG with $IMAGE_TAG in deployment YAML"
+          sed "s|IMAGE_TAG|$IMAGE_TAG|g" k8s/deployment-template.yaml > k8s/deployment.yaml
+          kubectl apply -f k8s/deployment.yaml
+        '''
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "✅ CI/CD pipeline completed successfully!"
+    }
+    failure {
+      echo "❌ CI/CD pipeline failed. Please check the logs."
+    }
+  }
+}
