@@ -22,6 +22,11 @@ spec:
               value: postgres://medusa:medusa@postgres/medusa?ssl_mode=disable
             - name: REDIS_URL
               value: redis://medusa-redis:6379
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              npx medusa db:setup --no-interactive && 
+              npx medusa start
 ---
 apiVersion: v1
 kind: Service
