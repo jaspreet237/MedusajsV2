@@ -22,7 +22,7 @@ services:
       - "6379:6379"
 
   medusa:
-    image: jaspreet237/medusajsv2:latest
+    image: jaspreet237/medusajsv2:ver1
     container_name: medusa_app
     restart: unless-stopped
     depends_on:

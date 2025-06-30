@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     IMAGE_NAME = "jaspreet237/medusajsv2"
-    IMAGE_TAG = "${new Date().format('yyyyMMddHHmmss')}"
+    IMAGE_TAG = "v${BUILD_NUMBER}"
   }
 
   stages {
@@ -18,7 +18,6 @@ pipeline {
         sh '''
           echo "🔧 Building Docker image: $IMAGE_NAME:$IMAGE_TAG"
           docker build -t $IMAGE_NAME:$IMAGE_TAG .
-          docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
         '''
       }
     }
@@ -29,7 +28,6 @@ pipeline {
           sh '''
             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             docker push $IMAGE_NAME:$IMAGE_TAG
-            docker push $IMAGE_NAME:latest
           '''
         }
       }
@@ -38,8 +36,8 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         sh '''
-          echo "🚀 Replacing IMAGE_TAG with $IMAGE_TAG in deployment YAML"
-          sed "s|IMAGE_TAG|$IMAGE_TAG|g" k8s/deployment.yaml > k8s/deployment.yaml
+          echo "🚀 Updating image tag in deployment YAML"
+          sed "s|IMAGE_TAG|$IMAGE_TAG|g" k8s/deployment-template.yaml > k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml
         '''
       }
@@ -48,10 +46,10 @@ pipeline {
 
   post {
     success {
-      echo "✅ CI/CD pipeline completed successfully!"
+      echo "✅ Deployed $IMAGE_NAME:$IMAGE_TAG successfully!"
     }
     failure {
-      echo "❌ CI/CD pipeline failed. Please check the logs."
+      echo "❌ Deployment failed. Check logs for details."
     }
   }
 }
