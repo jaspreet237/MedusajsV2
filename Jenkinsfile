@@ -40,7 +40,7 @@ pipeline {
         withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
           sh '''
             echo "🚀 Updating image tag in deployment YAML"
-            sed "s|IMAGE_TAG|$IMAGE_TAG|g" k8s/full-template.yaml > k8s/deployment.yaml
+            sed "s|IMAGE_TAG|$IMAGE_TAG|g" k8s/full-deployment.yaml > k8s/deployment.yaml
             kubectl apply -f k8s/deployment.yaml
           '''
         }
