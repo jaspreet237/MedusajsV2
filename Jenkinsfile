@@ -41,6 +41,7 @@ pipeline {
           sh '''
             echo "🚀 Updating image tag in deployment YAML"
             sed "s|IMAGE_TAG|$IMAGE_TAG|g" k8s/full-deployment.yaml > k8s/deployment.yaml
+            export KUBECONFIG=$HOME/.kube/config
             kubectl apply -f k8s/deployment.yaml --validate=false
           '''
         }
