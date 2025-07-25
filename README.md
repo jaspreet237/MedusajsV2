@@ -1,135 +1,160 @@
-✅ Steps to Use Your Repo:
-Clone the Repo:
 
-bash
+# MedusaJS V2 Ecommerce Backend on AKS (Azure Kubernetes Service)
+
+This project demonstrates a production-like deployment of a **MedusaJS v2 ecommerce backend** using **Docker**, **Jenkins CI/CD**, **Azure Kubernetes Service (AKS)**, and **PostgreSQL**. The backend exposes REST APIs and an admin panel for managing ecommerce operations.
+
+---
+
+## 🔧 Tech Stack
+
+- **Backend**: MedusaJS v2
+- **Database**: PostgreSQL (containerized)
+- **CI/CD**: Jenkins (Pipeline-based deployment)
+- **Containerization**: Docker & Docker Compose
+- **Orchestration**: Kubernetes (AKS)
+- **Cloud**: Microsoft Azure
+- **Others**: Helm (optional), kubectl, Azure CLI
+
+---
+
+## 📁 Project Structure
+
+```
+MedusajsV2/
+│
+├── k8s/                    # Kubernetes YAML files
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── postgres.yaml
+│
+├── jenkins/
+│   └── Jenkinsfile         # Jenkins CI/CD pipeline script
+│
+├── Dockerfile              # Docker image for MedusaJS backend
+├── docker-compose.yml      # Local development setup
+└── README.md               # This file
+```
+
+---
+
+## 🚀 Features
+
+- CI/CD pipeline triggered via Jenkins
+- Deployment on AKS using kubectl
+- External LoadBalancer to access Medusa Admin UI
+- Logs and service monitoring with `kubectl`
+- Secure PostgreSQL with volume persistence
+- Easily scalable & production-ready
+
+---
+
+## 🛠️ Setup & Deployment
+
+### 1. Clone the Repo
+
+```bash
 git clone https://github.com/jaspreet237/MedusajsV2.git
 cd MedusajsV2
-Install Dependencies:
+```
 
-bash
-yarn install
-# or
-npm install
-Create .env File:
-Copy the .env.template and fill in values:
+### 2. Build Docker Images
 
-bash
-Copy
-Edit
-cp .env.template .env
-Run with Docker:
-Make sure Docker is running, then:
+```bash
+docker build -t medusa-app .
+docker-compose up -d
+```
 
-bash
-docker-compose up --build
-Access Medusa Admin/Storefront/Backend:
-Depends on your docker-compose.yml setup. Usually:
+### 3. Push to Docker Hub
 
-Backend: http://localhost:9000
-------------------------------------------------------------------------------------------------------------------------------------------
-✅  Here’s a step-by-step guide to running Medusa.js v2 from scratch in Docker, ideal for new projects.
+```bash
+docker tag medusa-app <your-dockerhub-username>/medusa-app
+docker push <your-dockerhub-username>/medusa-app
+```
 
-1. Prerequisites
-Docker and Docker Compose installed
-Basic command line knowledge
-2. Create a New Medusa v2 Project
-Use the Medusa CLI to scaffold a new project. If you don’t have it, install globally:
+### 4. Create AKS Cluster (Optional: if not already created)
 
-sh
-npm install -g @medusajs/medusa-cli
-Create a new project:
+```bash
+az aks create --resource-group rg-aks-dev --name my-aks-cluster --node-count 1 --generate-ssh-keys
+az aks get-credentials --resource-group rg-aks-dev --name my-aks-cluster
+```
 
-sh
-medusa new my-medusa-store
-cd my-medusa-store
-3. Create a Dockerfile
-Create a file named Dockerfile in your project root:
+### 5. Apply Kubernetes Manifests
 
+```bash
+kubectl apply -f k8s/postgres.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+```
 
-Dockerfile
-v3
-FROM node:18
+### 6. Access Application
 
-WORKDIR /app
+Check external IP:
 
-COPY package*.json ./
-RUN npm install
-4. Create docker-compose.yml
-Create a file named docker-compose.yml in your project root:
+```bash
+kubectl get svc medusa-service
+```
 
-5. Configure Medusa Environment
-Medusa v2 will read from .env or environment variables. For basic setup, you can rely on the environment variables in docker-compose.yml.
-If you want, create a .env file for more settings.
+Visit:
 
-6. Start Medusa with Docker
-In your project root, run:
+```
+http://<EXTERNAL-IP>:9000/app/login
+```
 
-sh
-docker-compose up --build
-Medusa will now be running at http://localhost:9000/app.
+---
 
-#command to create user for login:
-docker-compose exec medusa npx medusa user -e admin@example.com -p supersecret
+## 🧪 Create Admin User (Inside Pod)
 
-7. Initialize the Database (if needed)
-For fresh setups, Medusa v2 may auto-migrate. If you ever need to run migrations manually:
+```bash
+kubectl exec -it <medusa-pod-name> -- yarn medusa user -e admin@mail.com -p password
+```
 
-sh
-docker-compose exec medusa npx medusa migrations run
-8. Access Medusa
-API: http://localhost:9000/app
-Admin: v2 does not include admin UI by default. You can add it as a separate service.
-9. Next Steps
-Add plugins or modules as needed (payments, file storage, etc.)
-For production, set proper environment variables, secrets, and use medusa start instead of dev.
+---
 
-#command to create user for login:
-docker-compose exec medusa npx medusa user -e admin@example.com -p supersecret
+## 🧰 Jenkins CI/CD Setup
 
+- Pipeline includes steps to:
+  - Clone repo
+  - Build Docker image
+  - Push to Docker Hub
+  - Apply Kubernetes manifests
 
-You can pull the images from dockerhub and run the program using docker-compose.yml file :
-version: '3.8'
+Example Jenkinsfile is included under `jenkins/`.
 
-services:
-  postgres:
-    image: postgres:15
-    container_name: medusa_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: medusa
-      POSTGRES_PASSWORD: medusa
-      POSTGRES_DB: medusa
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+---
 
-  redis:
-    image: redis:7
-    container_name: medusa_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
+## 📌 Future Enhancements
 
-  medusa:
-    image: jaspreet237/medusajsv2:latest
-    container_name: medusa_app
-    restart: unless-stopped
-    depends_on:
-      - postgres
-      - redis
-    environment:
-      DATABASE_URL: postgres://medusa:medusa@postgres/medusa?ssl_mode=disable
-      REDIS_URL: redis://redis:6379
-      NODE_ENV: development
-    ports:
-      - "9000:9000"
-    command: >
-      bash -c "
-        npx medusa db:setup --no-interactive &&
-        npx medusa start
-      "
+- Implement Ingress Controller (Nginx or Traefik)
+- Enable TLS with Let's Encrypt
+- Add Redis for caching & job queue
+- Configure Horizontal Pod Autoscaler
+- Enable Role-Based Access Control (RBAC)
+- Integrate monitoring (Prometheus + Grafana)
 
-volumes:
-  pgdata:
+---
 
+## 🧠 What You Can Learn From This Project
+
+- Real-world AKS deployment
+- End-to-end DevOps pipeline using Jenkins
+- Secure and scalable Kubernetes practices
+- Practical MedusaJS backend usage
+
+---
+
+## 🤝 Contributing
+
+Pull requests and stars are welcome! For major changes, please open an issue first.
+
+---
+
+## 📄 License
+
+This project is licensed under [MIT](LICENSE).
+
+---
+
+## 🔗 Author
+
+- **Jaspreet Singh**
+- GitHub: [jaspreet237](https://github.com/jaspreet237)
